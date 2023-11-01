@@ -1,0 +1,32 @@
+{
+  "manifest_version": 2,
+  "name": "VimTab",
+  "version": "1.0",
+
+  "description": "Quickly navigate through hundreds of tabs with only your keyboard!",
+
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "browser_action": {
+    "browser_style": true,
+    "default_title": "VimTab",
+    "default_popup": "tabs.html"
+  },
+  "permissions": [
+    "tabs"
+  ],
+  "icons": {
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png"
+  },
+  "commands": {
+    "_execute_browser_action": {
+      "suggested_key": {
+        "default": "Ctrl+Alt+A"
+      }
+    }
+  }
+}
