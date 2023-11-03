@@ -40,6 +40,10 @@ h3 {
     border-bottom:none;
 }
 
+.tab-list .highlighted {
+    background-color:rgba(255,255,255,0.3);
+}
+
 .tab-list td {
     white-space: nowrap;
     text-overflow:ellipsis;

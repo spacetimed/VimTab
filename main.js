@@ -12,8 +12,10 @@ function generateKeyMap() {
             n_to_key[i] = i;
         } else if (i >= 10 && i <= 35) {
             const char = String.fromCharCode(87 + i);
-            key_to_n[char] = i;
-            n_to_key[i] = char;
+            if (char != 'j' && char != 'k') {
+                key_to_n[char] = i;
+                n_to_key[i] = char;
+            }
         }    
     }
 }
@@ -49,43 +51,97 @@ function addToTable(table, id, tabMap) {
     }
 }
 
-function handleKey() {
+function keyHandler() {
     const key = event.key.toLowerCase();
     isNum = Boolean(key >= '0' && key <= '9');
-    isAlpha = Boolean(key >= 'a' && key <= 'z' && key.length == 1);
+    //isAlpha = Boolean(key >= 'a' && key <= 'z' && key.length == 1);
 
     if (search_mode) {
-        if (key == '/') {
-            disableSearchMode();
-        } else if (key.length == 1) {
-            search_str += key;
+        handleSearchKey(key);
+    } else {
+        handleNormalKey(key);
+    }
+}
+
+function handleSearchKey(key) {
+    if (key == '/') {
+        disableSearchMode();
+    } else if (key.length == 1) {
+        search_str += key;
+        updateSearchBox();
+        render();
+    } else if (key == 'backspace') {
+        if (search_str.length > 0) {
+            search_str = search_str.substring(0, search_str.length - 1);
             updateSearchBox();
-            display();
-        } else if (key == 'backspace') {
-            if (search_str.length > 0) {
-                search_str = search_str.substring(0, search_str.length - 1);
-                updateSearchBox();
-                display();
-            }
-        } else if (key == 'enter') {
-            if (shortcut_map.length == 1) {
-                browser.tabs.update(shortcut_map[0], {active: true});
-                window.close();
-            } else {
-                disableSearchMode();
-            }
+            render();
         }
+    } else if (key == 'enter') {
+        if (shortcut_map.length == 1) {
+            browser.tabs.update(shortcut_map[0], {active: true});
+            window.close();
+        } else {
+            disableSearchMode();
+        }
+    }
+}
+
+var active_row = -1;
+var highlight_mode = false;
+
+function disableHighlightMode() {
+    const rows = document.querySelectorAll('.tab-list tr');
+    if (highlight_mode) {
+        if (active_row >= 0) {
+            rows[active_row].classList.remove('highlighted');
+        }
+        active_row = -1;
+        highlight_mode = false;
+    }
+}
+
+function handleNormalKey(key) {
+
+    isAlpha = Boolean(key >= 'a' && key <= 'z' && key.length == 1);
+    isScroll = Boolean(key == 'j' || key == 'k');
+
+    if (isScroll) {
+        const rows = document.querySelectorAll('.tab-list tr');
+        if (key == 'j') {
+            if (active_row >= 0) {
+                rows[active_row].classList.remove('highlighted');
+            }
+            active_row = (active_row + 1) % (rows.length);
+            rows[active_row].classList.add('highlighted');
+        } else if (key == 'k') {
+            if (active_row >= 0) {
+                rows[active_row].classList.remove('highlighted');
+            }
+            active_row = active_row - 1;
+            if (active_row < 0) {
+                active_row = rows.length - 1;
+            }
+            rows[active_row].classList.add('highlighted');
+        }
+        highlight_mode = true;
+        console.log('active_row', active_row);
+    } else if (key == 'enter' && highlight_mode) {
+        browser.tabs.update(shortcut_map[active_row], {active: true});
+        window.close();
     } else if (isNum || (key in key_to_n && key_to_n[key] <= shortcut_map.length)) {
         browser.tabs.update(shortcut_map[key_to_n[key]], {active: true});
         window.close();
     } else if (key == '/') {
+        disableHighlightMode();
         enableSearchMode();
     } else if (isAlpha) {
+        disableHighlightMode();
         enableSearchMode();
         search_str += key;
         updateSearchBox(search_str);
-        display();
+        render();
     }
+
 }
 
 function updateSearchBox() {
@@ -102,7 +158,7 @@ function disableSearchMode() {
     document.querySelector('.search').style.opacity = 0;
 }
 
-function display() {
+function render() {
     generateKeyMap();
     shortcut_map.length = 0;
     const table = document.querySelector('.tab-list');
@@ -138,5 +194,5 @@ function display() {
     });
 }
 
-document.addEventListener("DOMContentLoaded", display);
-document.addEventListener("keydown", handleKey);
+document.addEventListener("DOMContentLoaded", render);
+document.addEventListener("keydown", keyHandler);
