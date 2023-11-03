@@ -22,7 +22,6 @@ function generateKeyMap() {
 
 function handleRowClick(event) {
     const id = event.currentTarget.getAttribute("data-tabid");
-
     browser.tabs.update(shortcut_map[id], {
         active: true,
     });
@@ -41,7 +40,6 @@ function addToTable(table, id, tabMap) {
     faviconImg.height = 16;
     cell2.appendChild(faviconImg);
     cell3.textContent = tabMap[id].title;
-
     if (tabMap[id].rank <= 9 && tabMap[id].rank >= 0) {
         cell1.textContent = tabMap[id].rank;
     } else if (tabMap[id].rank >= 10 && tabMap[id].rank <= 35) {
@@ -54,8 +52,6 @@ function addToTable(table, id, tabMap) {
 function keyHandler() {
     const key = event.key.toLowerCase();
     isNum = Boolean(key >= '0' && key <= '9');
-    //isAlpha = Boolean(key >= 'a' && key <= 'z' && key.length == 1);
-
     if (search_mode) {
         handleSearchKey(key);
     } else {
@@ -101,7 +97,6 @@ function disableHighlightMode() {
 }
 
 function handleNormalKey(key) {
-
     isAlpha = Boolean(key >= 'a' && key <= 'z' && key.length == 1);
     isScroll = Boolean(key == 'j' || key == 'k');
 
@@ -124,10 +119,24 @@ function handleNormalKey(key) {
             rows[active_row].classList.add('highlighted');
         }
         highlight_mode = true;
-        console.log('active_row', active_row);
     } else if (key == 'enter' && highlight_mode) {
-        browser.tabs.update(shortcut_map[active_row], {active: true});
-        window.close();
+        if (active_row == 0) {
+            window.close(); 
+        } else {
+            browser.tabs.update(shortcut_map[active_row - 1], {active: true});
+            window.close();
+        }
+    } else if (key == '.' && highlight_mode) {
+        if (active_row == 0) {
+            browser.tabs.query({active: true}).then((tabs) => { 
+                for (tab of tabs) {
+                    browser.tabs.move(tab.id, {index: 0});
+                    return;
+                }
+            });
+        } else {
+            browser.tabs.move(shortcut_map[active_row - 1], {index: 0});
+        }
     } else if (isNum || (key in key_to_n && key_to_n[key] <= shortcut_map.length)) {
         browser.tabs.update(shortcut_map[key_to_n[key]], {active: true});
         window.close();
@@ -141,7 +150,6 @@ function handleNormalKey(key) {
         updateSearchBox(search_str);
         render();
     }
-
 }
 
 function updateSearchBox() {
@@ -164,8 +172,7 @@ function render() {
     const table = document.querySelector('.tab-list');
     table.innerHTML = '';
     const getMessageHistory = browser.runtime.sendMessage({ action: "getTabHistory" });
-
-    getMessageHistory.then( (response) => {
+    getMessageHistory.then((response) => {
         if (response) {
             const tabHistory = response.tabHistory.reverse();
             const tabMap = {};

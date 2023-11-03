@@ -4,6 +4,7 @@ function init() {
     browser.tabs.query({}).then((tabs) => {
         for (const tab of tabs) {
             tab_history.add(tab.id);
+            console.log(tab.id, '->', tab.url);
         }
     })
 }
