@@ -120,11 +120,16 @@ function handleNormalKey(key) {
         }
         highlight_mode = true;
     } else if (key == 'enter' && highlight_mode) {
-        if (active_row == 0) {
-            window.close(); 
-        } else {
-            browser.tabs.update(shortcut_map[active_row - 1], {active: true});
+        if (search_str.length > 0) {
+            browser.tabs.update(shortcut_map[active_row], {active: true});
             window.close();
+        } else {
+            if (active_row == 0) {
+                window.close(); 
+            } else {
+                browser.tabs.update(shortcut_map[active_row - 1], {active: true});
+                window.close();
+            }
         }
     } else if (key == '.' && highlight_mode) {
         if (active_row == 0) {
